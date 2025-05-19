@@ -22,9 +22,9 @@ exports.register = async (req, res) => {
     res.status(201).json({
       _id: user._id,
       name: user.name,
+      password: user.password,
       email: user.email,
       role: user.role,
-      token: generateToken(user),
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

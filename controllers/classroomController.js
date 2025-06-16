@@ -1,7 +1,6 @@
 const Classroom = require('../models/Classroom');
 const Student = require('../models/Student');
 
-// Create a new class (staff/admin only)
 exports.createClassroom = async (req, res) => {
   try {
     const { name, capacity } = req.body;
@@ -13,7 +12,6 @@ exports.createClassroom = async (req, res) => {
   }
 };
 
-// Get all classes
 exports.getAllClassrooms = async (req, res) => {
   try {
     const classes = await Classroom.find().populate('teacher', 'name').populate('students', 'fullName');
@@ -23,7 +21,6 @@ exports.getAllClassrooms = async (req, res) => {
   }
 };
 
-// Assign a student to a class
 exports.assignStudentToClassroom = async (req, res) => {
   try {
     const { studentId, classroomId } = req.body;
@@ -37,7 +34,6 @@ exports.assignStudentToClassroom = async (req, res) => {
       return res.status(400).json({ message: 'Classroom is full' });
     }
 
-    // Avoid duplicate assignment
     if (classroom.students.includes(studentId)) {
       return res.status(400).json({ message: 'Student already assigned to this class' });
     }

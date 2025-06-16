@@ -20,13 +20,11 @@ exports.submitApplication = async (req, res) => {
 };
 
 
-// GET /api/applications (parent views their own apps)
 exports.getMyApplications = async (req, res) => {
   const apps = await Application.find({ createdBy: req.user._id });
   res.json(apps);
 };
 
-// GET /api/applications/all (staff only)
 exports.getAllApplications = async (req, res) => {
   try {
     const apps = await Application.find().populate('createdBy', 'name email');
@@ -36,8 +34,6 @@ exports.getAllApplications = async (req, res) => {
   }
 };
 
-
-// PATCH /api/applications/:id/status
 exports.updateApplicationStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -60,8 +56,6 @@ exports.updateApplicationStatus = async (req, res) => {
   }
 };
 
-
-// POST /api/applications/:id/enroll
 exports.enrollFromApplication = async (req, res) => {
   try {
     const app = await Application.findById(req.params.id);

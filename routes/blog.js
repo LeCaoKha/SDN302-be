@@ -11,10 +11,6 @@ const { protect, requireRole } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// router.get("/", protect, requireRole(["staff"]), getAllBlogs);
-// router.get("/:id", protect, requireRole(["staff"]), getBlogById);
-// router.post("/blog", protect, requireRole(["staff"]), createBlog);
-
 router.get("/", getAllBlogs);
 router.get("/:id", getBlogById);
 router.post("/", createBlog);

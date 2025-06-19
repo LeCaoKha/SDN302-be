@@ -5,11 +5,20 @@ const {
   getStudentById,
   updateStudent,
   deleteStudent,
+  getStudentsByParentId,
+  getStudentsByName,
+  getStudentsByClass
 } = require("../controllers/studentController");
 
 const { protect, requireRole } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+
+router.get('/search-by-name', protect, requireRole(['admin', 'staff']), getStudentsByName);
+
+router.get('/search-by-class', protect, requireRole(['admin', 'staff']), getStudentsByClass);
+
+router.get('/parent/:parentId', protect, requireRole(['admin', 'staff', 'parent']), getStudentsByParentId);
 
 // Staff or Admin only
 router.post("/", protect, requireRole(["admin", "staff"]), createStudent);

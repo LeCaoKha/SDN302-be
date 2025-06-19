@@ -1,1 +1,17 @@
-/node_modules
+# Thư mục node modules
+node_modules/
+
+# File cấu hình của IDE
+.vscode/
+.idea/
+*.suo
+
+# File log
+*.log
+
+# File biến môi trường
+.env
+
+# Thư mục build hoặc dist
+dist/
+build/

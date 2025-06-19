@@ -5,6 +5,8 @@ const {
   createBlog,
   updateBlog,
   deleteBlog,
+  createTag,
+  getAllTags,
 } = require("../controllers/blogController");
 
 const { protect, requireRole } = require("../middleware/authMiddleware");
@@ -16,8 +18,10 @@ const router = express.Router();
 // router.post("/blog", protect, requireRole(["staff"]), createBlog);
 
 router.get("/", getAllBlogs);
+router.get("/tag", getAllTags);
 router.get("/:id", getBlogById);
 router.post("/", createBlog);
+router.post("/tag", createTag);
 router.put("/:id", updateBlog);
 router.delete("/:id", deleteBlog);
 

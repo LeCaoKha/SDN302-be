@@ -4,12 +4,13 @@ const Student = require("../models/Student");
 // POST /api/applications (parent only)
 exports.submitApplication = async (req, res) => {
   try {
-    const { studentName, birthdate, gender } = req.body;
+    const { studentName, birthdate, gender, address } = req.body;
 
     const application = await Application.create({
       studentName,
       birthdate,
       gender,
+      address,
       createdBy: req.user._id,
     });
 
@@ -21,15 +22,18 @@ exports.submitApplication = async (req, res) => {
 
 // GET /api/applications (parent views their own apps)
 exports.getMyApplications = async (req, res) => {
-  const apps = await Application.find({ createdBy: req.user._id });
-  res.json(apps);
+  const applications = await Application.find({ createdBy: req.user._id });
+  res.json(applications);
 };
 
 // GET /api/applications/all (staff only)
 exports.getAllApplications = async (req, res) => {
   try {
-    const apps = await Application.find().populate("createdBy", "name email");
-    res.json(apps);
+    const allApplications = await Application.find().populate(
+      "createdBy",
+      "fullName email phone"
+    );
+    res.json(allApplications);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -44,15 +48,16 @@ exports.updateApplicationStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid status value" });
     }
 
-    const app = await Application.findByIdAndUpdate(
+    const application = await Application.findByIdAndUpdate(
       req.params.id,
       { status },
       { new: true }
     );
 
-    if (!app) return res.status(404).json({ message: "Application not found" });
+    if (!application)
+      return res.status(404).json({ message: "Application not found" });
 
-    res.json(app);
+    res.json(application);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -70,6 +75,8 @@ exports.enrollFromApplication = async (req, res) => {
     const existing = await Student.findOne({
       fullName: app.studentName,
       birthdate: app.birthdate,
+      gender: app.gender,
+      address: app.address,
       parentId: app.createdBy,
     });
 
@@ -81,6 +88,7 @@ exports.enrollFromApplication = async (req, res) => {
       fullName: app.studentName,
       birthdate: app.birthdate,
       gender: app.gender,
+      address: app.address,
       parentId: app.createdBy,
     });
 

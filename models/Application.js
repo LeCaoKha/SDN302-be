@@ -15,11 +15,16 @@ const applicationSchema = new mongoose.Schema(
       enum: ["male", "female", "other"],
       required: true,
     },
+    address: {
+      type: String,
+      required: true,
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+    reason: { type: String },
     status: {
       type: String,
       enum: ["pending", "complete", "needs-info", "rejected"],

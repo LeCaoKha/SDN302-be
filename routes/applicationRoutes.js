@@ -5,6 +5,7 @@ const {
   getAllApplications,
   updateApplicationStatus,
   enrollFromApplication,
+  getApplicationById,
 } = require("../controllers/applicationController");
 
 const { protect, requireRole } = require("../middleware/authMiddleware");
@@ -19,6 +20,12 @@ router.get(
   protect,
   requireRole(["staff", "admin"]),
   getAllApplications
+);
+router.get(
+  "/:id",
+  protect,
+  requireRole(["parent", "staff", "admin"]),
+  getApplicationById
 );
 router.patch(
   "/:id/status",

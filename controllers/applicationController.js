@@ -125,3 +125,31 @@ exports.getApplicationById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// PATCH /api/applications/:id (parent update their own application, except status)
+exports.updateApplicationForParent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateFields = { ...req.body };
+
+    // Không cho phép parent cập nhật status
+    if (updateFields.status !== undefined) {
+      delete updateFields.status;
+    }
+
+    // Chỉ cho phép parent update application của chính mình
+    const application = await Application.findOneAndUpdate(
+      { _id: id, createdBy: req.user._id },
+      updateFields,
+      { new: true }
+    );
+
+    if (!application) {
+      return res.status(404).json({ message: "Application not found or not authorized" });
+    }
+
+    res.json(application);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};

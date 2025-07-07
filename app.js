@@ -8,6 +8,7 @@ const adminRoutes = require("./routes/admin");
 const blogRoutes = require("./routes/blog");
 const applicationRoutes = require("./routes/applicationRoutes");
 const parentRoutes = require('./routes/parent');
+const teacherRoutes = require("./routes/teacherRoutes");
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/blog", blogRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/parents", parentRoutes);
+app.use("/api/teachers", teacherRoutes);
 
 // Sample route
 app.get("/", (req, res) => {

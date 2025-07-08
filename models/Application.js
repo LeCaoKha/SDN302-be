@@ -27,9 +27,15 @@ const applicationSchema = new mongoose.Schema(
     reason: { type: String },
     status: {
       type: String,
-      enum: ["pending", "complete", "needs-info", "rejected"],
-      default: "pending",
-    },
+      enum: [
+        "payment_pending", // Đã submit, chờ thanh toán
+        "payment_completed", // Đã thanh toán, chờ admin duyệt
+        "approved",        // Admin đã duyệt
+        "rejected",        // Admin từ chối
+        "cancelled"        // Đơn bị hủy
+      ],
+      default: "payment_pending",
+    }
   },
   { timestamps: true }
 );

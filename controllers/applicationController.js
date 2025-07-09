@@ -44,18 +44,39 @@ exports.updateApplicationStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
-    if (!["pending", "approved",  "rejected"].includes(status)) {
-      return res.status(400).json({ message: "Invalid status value" });
+    if (!["payment_pending", "payment_completed", "approved", "rejected"].includes(status)) {
+      return res.status(400).json({ 
+        message: "Invalid status value. Allowed: payment_pending, payment_completed, approved, rejected" 
+      });
     }
 
+    // Tìm application hiện tại để kiểm tra status
+    const currentApplication = await Application.findById(req.params.id);
+
+    if (!currentApplication) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    // Chỉ cho phép admin update khi status hiện tại là payment_completed
+    if (currentApplication.status !== "payment_completed") {
+      return res.status(400).json({ 
+        message: "Application must be in 'payment_completed' status before admin can update. Current status: " + currentApplication.status 
+      });
+    }
+
+    // Chỉ cho phép chuyển từ payment_completed sang approved hoặc rejected
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({ 
+        message: "Can only update to 'approved' or 'rejected' from 'payment_completed' status" 
+      });
+    }
+
+    // Cập nhật status
     const application = await Application.findByIdAndUpdate(
       req.params.id,
       { status },
       { new: true }
     );
-
-    if (!application)
-      return res.status(404).json({ message: "Application not found" });
 
     res.json(application);
   } catch (error) {
@@ -69,7 +90,7 @@ exports.enrollFromApplication = async (req, res) => {
     const app = await Application.findById(req.params.id);
 
     if (!app) return res.status(404).json({ message: "Application not found" });
-    if (app.status !== "complete")
+    if (app.status !== "approved")
       return res.status(400).json({ message: "Application not approved yet" });
 
     const existing = await Student.findOne({
@@ -126,20 +147,42 @@ exports.getApplicationById = async (req, res) => {
   }
 };
 
-// PATCH /api/applications/:id (parent update their own application, except status)
+// PATCH /api/applications/:id (parent update their own application)
 exports.updateApplicationForParent = async (req, res) => {
   try {
     const { id } = req.params;
     const updateFields = { ...req.body };
 
-    // Không cho phép parent cập nhật status
+    // Nếu parent muốn cancel đơn
+    if (updateFields.status === "cancelled") {
+      // Chỉ cho phép cancel khi đơn đang ở trạng thái payment_pending hoặc payment_completed
+      const application = await Application.findOneAndUpdate(
+        {
+          _id: id,
+          createdBy: req.user._id,
+          status: { $in: ["payment_pending", "payment_completed"] }
+        },
+        { status: "cancelled" },
+        { new: true }
+      );
+      if (!application) {
+        return res.status(404).json({ message: "Application not found, not authorized, or cannot be cancelled at current status" });
+      }
+      return res.json(application);
+    }
+
+    // Không cho phép parent cập nhật status sang giá trị khác ngoài cancelled
     if (updateFields.status !== undefined) {
       delete updateFields.status;
     }
 
-    // Chỉ cho phép parent update application của chính mình
+    // Chỉ cho phép parent update application của chính mình khi status là payment_pending hoặc payment_completed
     const application = await Application.findOneAndUpdate(
-      { _id: id, createdBy: req.user._id },
+      {
+        _id: id,
+        createdBy: req.user._id,
+        status: { $in: ["payment_pending", "payment_completed"] } // Chỉ cho phép sửa khi chưa được duyệt
+      },
       updateFields,
       { new: true }
     );

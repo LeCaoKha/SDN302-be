@@ -9,6 +9,8 @@ const blogRoutes = require("./routes/blog");
 const applicationRoutes = require("./routes/applicationRoutes");
 const parentRoutes = require("./routes/parent");
 const paymentRoutes = require("./routes/payment");
+const teacherRoutes = require("./routes/teacherRoutes");
+const classroomRoutes = require("./routes/classroomRoutes");
 
 dotenv.config();
 
@@ -24,6 +26,8 @@ app.use("/api/blog", blogRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/parents", parentRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/teachers", teacherRoutes);
+app.use("/api/classrooms", classroomRoutes);
 
 // Sample route
 app.get("/", (req, res) => {

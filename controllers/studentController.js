@@ -1,14 +1,30 @@
 const Student = require("../models/Student");
 
 // Create student
+// exports.createStudent = async (req, res) => {
+//   try {
+//     const student = await Student.create(req.body);
+//     res.status(201).json(student);
+//   } catch (err) {
+//     res.status(400).json({ message: err.message });
+//   }
+// };
+
 exports.createStudent = async (req, res) => {
   try {
+    if (req.user.role === "parent" && req.body.parentId !== req.user.id) {
+      return res.status(403).json({
+        message: "Bạn chỉ có thể tạo học sinh cho chính mình",
+      });
+    }
+
     const student = await Student.create(req.body);
     res.status(201).json(student);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
+
 
 // Get all students
 exports.getAllStudents = async (req, res) => {

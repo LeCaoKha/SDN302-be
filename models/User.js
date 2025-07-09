@@ -13,9 +13,31 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: {
       type: String,
-      enum: ["parent", "staff", "admin"],
+      enum: ["parent", "staff", "admin", "teacher"],
       default: "parent",
     },
+    // class: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   required: function() {
+    //     return this.role === "teacher";
+    //   }
+    // },
+
+// class: {
+//   type: mongoose.Schema.Types.ObjectId,
+//   ref: "Classroom", // thay đổi từ String thành ObjectId reference
+//   required: function() {
+//     return this.role === "teacher";
+//   }
+// },
+
+class: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Classroom",
+  required: false, // không bắt buộc
+  default: null
+},
+
   },
   { timestamps: true }
 );

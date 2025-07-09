@@ -8,6 +8,7 @@ const {
 const axios = require("axios");
 const crypto = require("crypto");
 const Payment = require("../models/Payment");
+const Application = require("../models/Application");
 const url = require("url");
 const querystring = require("querystring");
 const tmnCode = "MTZVDR2T";
@@ -15,6 +16,7 @@ const secureSecret = "C70JGHY1X7BQ2B98HO2S7X9BNLQ4JGDX";
 
 exports.getPaymentUrl = async (req, res) => {
   try {
+    const { applicationId, userId } = req.body;
     const vnpay = new VNPay({
       tmnCode,
       secureSecret,
@@ -33,16 +35,15 @@ exports.getPaymentUrl = async (req, res) => {
       vnp_Amount: 100000, // 1000 VNĐ = 100000
       vnp_IpAddr: req.ip || "127.0.0.1",
       vnp_TxnRef: txnRef,
-      vnp_OrderInfo: "Thanh toán học phí",
+      vnp_OrderInfo: `applicationId=${applicationId}&userId=${userId}`,
       vnp_OrderType: ProductCode.Other,
-      vnp_ReturnUrl: "http://localhost:5000/api/payment/vnpay/return",
+      vnp_ReturnUrl: `http://localhost:5000/api/payment/vnpay/return/${applicationId}`,
       vnp_Locale: VnpLocale.VN,
       vnp_CreateDate: dateFormat(new Date()),
       vnp_ExpireDate: dateFormat(tomorrow),
     });
 
     // Gợi ý: lưu txnRef vào DB để phục vụ cho refund sau này
-
     res.status(201).json(vnpayResponse);
   } catch (error) {
     console.error("Error in getPaymentUrl:", error);
@@ -141,6 +142,7 @@ exports.refundPayment = async (req, res) => {
 
 exports.vnpayReturn = async (req, res) => {
   try {
+    const applicationId = req.params.applicationId;
     // Lấy raw query string (KHÔNG decode)
     const parsedUrl = url.parse(req.originalUrl);
     const rawQuery = parsedUrl.query;
@@ -151,6 +153,12 @@ exports.vnpayReturn = async (req, res) => {
       acc[key] = value;
       return acc;
     }, {});
+
+    const decodedOrderInfo = decodeURIComponent(queryParams.vnp_OrderInfo);
+    const parsedInfo = Object.fromEntries(
+      new URLSearchParams(decodedOrderInfo)
+    );
+    const userId = parsedInfo.userId;
 
     const secureHash = queryParams["vnp_SecureHash"];
     delete queryParams["vnp_SecureHash"];
@@ -168,6 +176,9 @@ exports.vnpayReturn = async (req, res) => {
 
     if (computedHash === secureHash && queryParams.vnp_ResponseCode === "00") {
       const newPayment = new Payment({
+        madeBy: userId,
+        payFor: "application",
+        applicationId: applicationId,
         vnp_TxnRef: queryParams.vnp_TxnRef,
         vnp_Amount: Number(queryParams.vnp_Amount) / 100,
         vnp_OrderInfo: decodeURIComponent(queryParams.vnp_OrderInfo),
@@ -179,17 +190,22 @@ exports.vnpayReturn = async (req, res) => {
         vnp_TransactionStatus: queryParams.vnp_TransactionStatus,
         vnp_SecureHash: secureHash,
       });
-
       await newPayment.save();
-      console.log("✅ Giao dịch hợp lệ. Đã lưu vào MongoDB.");
+
+      const updatedApp = await Application.findByIdAndUpdate(
+        applicationId,
+        { status: "payment_completed" },
+        { new: true }
+      );
+
+      if (!updatedApp) {
+        console.warn("⚠️ Không tìm thấy đơn để cập nhật");
+      } else {
+        console.log("✅ Đã cập nhật đơn thành payment_completed");
+      }
+
       return res.redirect("http://localhost:5173/vnpay/return");
     }
-
-    console.warn("❌ Giao dịch không hợp lệ hoặc hash không khớp.");
-    console.log("🔐 Query:", queryParams);
-    console.log("🔐 Hash từ VNPay:", secureHash);
-    console.log("🔐 Hash tính lại:", computedHash);
-    console.log("🔐 signData:", signData);
 
     return res.redirect("http://localhost:5173/payment-failed");
   } catch (error) {

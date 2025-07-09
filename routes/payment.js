@@ -13,6 +13,6 @@ const router = express.Router();
 
 router.post("/getPaymentUrl", getPaymentUrl);
 router.post("/refund", refundPayment);
-router.get("/vnpay/return", vnpayReturn);
+router.get("/vnpay/return/:applicationId", vnpayReturn);
 
 module.exports = router;

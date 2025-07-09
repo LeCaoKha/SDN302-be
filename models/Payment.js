@@ -1,6 +1,13 @@
 const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema({
+  madeBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  payFor: String,
+  applicationId: String,
   vnp_TxnRef: String,
   vnp_Amount: Number,
   vnp_OrderInfo: String,

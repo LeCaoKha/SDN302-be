@@ -10,6 +10,11 @@ const studentSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  classId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Classroom",
+    required: false, // có thể null nếu chưa xếp lớp
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

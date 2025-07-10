@@ -27,7 +27,7 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/parents", parentRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/teachers", teacherRoutes);
-app.use("/api/classrooms", classroomRoutes);
+app.use("/api/classroom", classroomRoutes);
 
 // Sample route
 app.get("/", (req, res) => {

@@ -213,3 +213,34 @@ exports.vnpayReturn = async (req, res) => {
     return res.status(500).json({ message: "Lỗi xử lý kết quả thanh toán" });
   }
 };
+
+// Lấy tổng số tiền đã thanh toán
+exports.getTotalPayment = async (req, res) => {
+  try {
+    const result = await Payment.aggregate([
+      { $group: { _id: null, total: { $sum: "$vnp_Amount" } } }
+    ]);
+    const total = result[0]?.total || 0;
+    res.status(200).json({ total });
+  } catch (error) {
+    res.status(500).json({ message: "Error calculating total payment" });
+  }
+};
+
+// Lấy tổng số tiền qua từng tháng
+exports.getMonthlyTotalPayment = async (req, res) => {
+  try {
+    const result = await Payment.aggregate([
+      {
+        $group: {
+          _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+          total: { $sum: "$vnp_Amount" }
+        }
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } }
+    ]);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: "Error calculating monthly total payment" });
+  }
+};

@@ -16,27 +16,17 @@ const userSchema = new mongoose.Schema(
       enum: ["parent", "staff", "admin", "teacher"],
       default: "parent",
     },
-    // class: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   required: function() {
-    //     return this.role === "teacher";
-    //   }
-    // },
-
-// class: {
-//   type: mongoose.Schema.Types.ObjectId,
-//   ref: "Classroom", // thay đổi từ String thành ObjectId reference
-//   required: function() {
-//     return this.role === "teacher";
-//   }
-// },
-
-class: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "Classroom",
-  required: false, // không bắt buộc
-  default: null
-},
+    class: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Classroom",
+      required: false, // không bắt buộc
+      default: null
+    },
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active"
+    },
 
   },
   { timestamps: true }

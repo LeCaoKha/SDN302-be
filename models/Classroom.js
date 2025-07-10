@@ -12,11 +12,12 @@ const classroomSchema = new mongoose.Schema(
       required: true,
       min: 1,
     },
-    teacher: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: false, // can be optional for now
-    },
+    teachers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     students: [
       {
         type: mongoose.Schema.Types.ObjectId,

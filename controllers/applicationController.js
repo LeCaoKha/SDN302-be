@@ -31,7 +31,7 @@ exports.getAllApplications = async (req, res) => {
   try {
     const allApplications = await Application.find().populate(
       "createdBy",
-      "fullName email phone"
+      "username email phone"
     );
     res.json(allApplications);
   } catch (error) {
@@ -44,9 +44,17 @@ exports.updateApplicationStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
-    if (!["payment_pending", "payment_completed", "approved", "rejected"].includes(status)) {
-      return res.status(400).json({ 
-        message: "Invalid status value. Allowed: payment_pending, payment_completed, approved, rejected" 
+    if (
+      ![
+        "payment_pending",
+        "payment_completed",
+        "approved",
+        "rejected",
+      ].includes(status)
+    ) {
+      return res.status(400).json({
+        message:
+          "Invalid status value. Allowed: payment_pending, payment_completed, approved, rejected",
       });
     }
 
@@ -59,15 +67,18 @@ exports.updateApplicationStatus = async (req, res) => {
 
     // Chỉ cho phép admin update khi status hiện tại là payment_completed
     if (currentApplication.status !== "payment_completed") {
-      return res.status(400).json({ 
-        message: "Application must be in 'payment_completed' status before admin can update. Current status: " + currentApplication.status 
+      return res.status(400).json({
+        message:
+          "Application must be in 'payment_completed' status before admin can update. Current status: " +
+          currentApplication.status,
       });
     }
 
     // Chỉ cho phép chuyển từ payment_completed sang approved hoặc rejected
     if (!["approved", "rejected"].includes(status)) {
-      return res.status(400).json({ 
-        message: "Can only update to 'approved' or 'rejected' from 'payment_completed' status" 
+      return res.status(400).json({
+        message:
+          "Can only update to 'approved' or 'rejected' from 'payment_completed' status",
       });
     }
 
@@ -123,24 +134,24 @@ exports.enrollFromApplication = async (req, res) => {
 exports.getApplicationById = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Build query based on user role
     let query = { _id: id };
-    
+
     // If user is parent, they can only see their own applications
     if (req.user.role === "parent") {
       query.createdBy = req.user._id;
     }
-    
+
     const application = await Application.findOne(query).populate(
       "createdBy",
-      "fullName email phone"
+      "username email phone"
     );
-    
+
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
     }
-    
+
     res.json(application);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -160,13 +171,16 @@ exports.updateApplicationForParent = async (req, res) => {
         {
           _id: id,
           createdBy: req.user._id,
-          status: { $in: ["payment_pending", "payment_completed"] }
+          status: { $in: ["payment_pending", "payment_completed"] },
         },
         { status: "cancelled" },
         { new: true }
       );
       if (!application) {
-        return res.status(404).json({ message: "Application not found, not authorized, or cannot be cancelled at current status" });
+        return res.status(404).json({
+          message:
+            "Application not found, not authorized, or cannot be cancelled at current status",
+        });
       }
       return res.json(application);
     }
@@ -181,14 +195,16 @@ exports.updateApplicationForParent = async (req, res) => {
       {
         _id: id,
         createdBy: req.user._id,
-        status: { $in: ["payment_pending", "payment_completed"] } // Chỉ cho phép sửa khi chưa được duyệt
+        status: { $in: ["payment_pending", "payment_completed"] }, // Chỉ cho phép sửa khi chưa được duyệt
       },
       updateFields,
       { new: true }
     );
 
     if (!application) {
-      return res.status(404).json({ message: "Application not found or not authorized" });
+      return res
+        .status(404)
+        .json({ message: "Application not found or not authorized" });
     }
 
     res.json(application);

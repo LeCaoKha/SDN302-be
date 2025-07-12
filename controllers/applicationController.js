@@ -58,14 +58,12 @@ exports.updateApplicationStatus = async (req, res) => {
       });
     }
 
-    // Tìm application hiện tại để kiểm tra status
     const currentApplication = await Application.findById(req.params.id);
 
     if (!currentApplication) {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    // Chỉ cho phép admin update khi status hiện tại là payment_completed
     if (currentApplication.status !== "payment_completed") {
       return res.status(400).json({
         message:
@@ -172,6 +170,15 @@ exports.updateApplicationForParent = async (req, res) => {
           _id: id,
           createdBy: req.user._id,
           status: { $in: ["payment_pending", "payment_completed"] },
+
+          /*SQL	MongoDB
+IN	$in
+NOT IN	$nin
+LIKE	$regex
+AND	$and
+OR	$or
+IS NULL	$exists: false
+*/
         },
         { status: "cancelled" },
         { new: true }
@@ -185,10 +192,7 @@ exports.updateApplicationForParent = async (req, res) => {
       return res.json(application);
     }
 
-    // Không cho phép parent cập nhật status sang giá trị khác ngoài cancelled
-    if (updateFields.status !== undefined) {
-      delete updateFields.status;
-    }
+
 
     // Chỉ cho phép parent update application của chính mình khi status là payment_pending hoặc payment_completed
     const application = await Application.findOneAndUpdate(

@@ -53,13 +53,18 @@ exports.getPaymentUrl = async (req, res) => {
 
 exports.refundPayment = async (req, res) => {
   try {
-    const {
-      vnp_TxnRef,
-      vnp_TransactionNo,
-      vnp_Amount,
-      vnp_TransactionDate,
-      reason,
-    } = req.body;
+    const { applicationId, reason } = req.body;
+
+    // Tìm payment theo applicationId
+    const payment = await Payment.findOne({ applicationId });
+    if (!payment) {
+      return res.status(404).json({ message: "Không tìm thấy giao dịch thanh toán cho applicationId này" });
+    }
+
+    const vnp_TxnRef = payment.vnp_TxnRef;
+    const vnp_TransactionNo = payment.vnp_TransactionNo;
+    const vnp_Amount = payment.vnp_Amount; // Đã là số, đơn vị VNĐ
+    const vnp_TransactionDate = payment.vnp_PayDate; // Định dạng: yyyyMMddHHmmss
 
     const requestId = Date.now().toString();
     const createDate = new Date()
@@ -132,6 +137,11 @@ exports.refundPayment = async (req, res) => {
         },
       }
     );
+
+    // Nếu refund thành công, xóa payment khỏi DB
+    if (response.data && response.data.vnp_ResponseCode === '00') {
+      await Payment.deleteOne({ applicationId });
+    }
 
     res.status(200).json(response.data);
   } catch (error) {
@@ -242,5 +252,15 @@ exports.getMonthlyTotalPayment = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: "Error calculating monthly total payment" });
+  }
+};
+
+exports.getPaymentByUserId = async (req, res) => {
+  try {
+    const {userId} = req.params;
+    const payments = await Payment.find({madeBy: userId});
+    res.status(200).json(payments);
+  } catch (error) {
+    res.status(500).json({ message: "Error get user payment" });
   }
 };

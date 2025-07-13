@@ -1,5 +1,5 @@
 const express = require("express");
-const { getPaymentUrl } = require("../controllers/paymentController");
+const { getPaymentUrl, getPaymentByUserId } = require("../controllers/paymentController");
 const { refundPayment } = require("../controllers/paymentController");
 const { vnpayReturn } = require("../controllers/paymentController");
 const { getTotalPayment, getMonthlyTotalPayment } = require("../controllers/paymentController");
@@ -13,6 +13,7 @@ const router = express.Router();
 // router.post("/blog", protect, requireRole(["staff"]), createBlog);
 
 router.post("/getPaymentUrl", getPaymentUrl);
+router.get("/getPaymentByUserId/:userId", getPaymentByUserId);
 router.post("/refund", refundPayment);
 router.get("/vnpay/return/:applicationId", vnpayReturn);
 router.get("/total", protect, requireRole(["admin"]), getTotalPayment);

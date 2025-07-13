@@ -13,16 +13,14 @@ const { protect, requireRole } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// router.get("/", protect, requireRole(["staff"]), getAllBlogs);
-// router.get("/:id", protect, requireRole(["staff"]), getBlogById);
-// router.post("/blog", protect, requireRole(["staff"]), createBlog);
-
 router.get("/", getAllBlogs);
 router.get("/tag", getAllTags);
 router.get("/:id", getBlogById);
-router.post("/", createBlog);
-router.post("/tag", createTag);
-router.put("/:id", updateBlog);
-router.delete("/:id", deleteBlog);
+
+// Các API dưới đây chỉ cho admin và staff
+router.post("/", protect, requireRole(["admin", "staff"]), createBlog);
+router.post("/tag", protect, requireRole(["admin", "staff"]), createTag);
+router.put("/:id", protect, requireRole(["admin", "staff"]), updateBlog);
+router.delete("/:id", protect, requireRole(["admin", "staff"]), deleteBlog);
 
 module.exports = router;

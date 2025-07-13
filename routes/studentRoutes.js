@@ -23,7 +23,7 @@ router.get('/parent/:parentId', protect, requireRole(['admin', 'staff', 'parent'
 // Staff or Admin only
 router.post("/", protect, requireRole(["admin", "staff", "parent"]), createStudent);
 router.get("/", protect, requireRole(["admin", "staff"]), getAllStudents);
-router.get("/:id", protect, requireRole(["admin", "staff"]), getStudentById);
+router.get("/:id", protect, requireRole(["admin", "staff", "parent"]), getStudentById);
 router.put("/:id", protect, requireRole(["admin", "staff"]), updateStudent);
 router.delete("/:id", protect, requireRole(["admin"]), deleteStudent);
 

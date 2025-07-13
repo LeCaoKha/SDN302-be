@@ -130,6 +130,9 @@ exports.addTeacherToClassroom = async (req, res) => {
     for (const id of ids) {
       const teacher = await User.findById(id);
       if (!teacher) continue;
+      // Gán classId cho teacher
+      teacher.class = classroomId;
+      await teacher.save();
       if (!classroom.teachers.includes(teacher._id)) {
         classroom.teachers.push(teacher._id);
         added.push(teacher._id);
@@ -195,6 +198,12 @@ exports.removeTeacherFromClassroom = async (req, res) => {
       if (idx !== -1) {
         classroom.teachers.splice(idx, 1);
         removed.push(id);
+        // Xóa class của teacher này
+        const teacher = await User.findById(id);
+        if (teacher) {
+          teacher.class = null;
+          await teacher.save();
+        }
       }
     }
     await classroom.save();

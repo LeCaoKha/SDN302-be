@@ -13,7 +13,6 @@ exports.getParents = async (req, res) => {
   try {
     const parents = await User.find({ 
       role: "parent", 
-      status: "active" 
     });
     res.json(parents);
   } catch (err) {

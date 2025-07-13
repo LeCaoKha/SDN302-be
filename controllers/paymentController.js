@@ -214,10 +214,14 @@ exports.vnpayReturn = async (req, res) => {
         console.log("✅ Đã cập nhật đơn thành payment_completed");
       }
 
-      return res.redirect("http://localhost:5173/vnpay/return");
+      return res.redirect(
+        `http://localhost:5173/vnpay/return?applicationId=${applicationId}`
+      );
     }
 
-    return res.redirect("http://localhost:5173/payment-failed");
+    return res.redirect(
+      `http://localhost:5173/payment-failed?applicationId=${applicationId}`
+    );
   } catch (error) {
     console.error("❌ Lỗi xử lý return từ VNPay:", error);
     return res.status(500).json({ message: "Lỗi xử lý kết quả thanh toán" });
@@ -228,7 +232,7 @@ exports.vnpayReturn = async (req, res) => {
 exports.getTotalPayment = async (req, res) => {
   try {
     const result = await Payment.aggregate([
-      { $group: { _id: null, total: { $sum: "$vnp_Amount" } } }
+      { $group: { _id: null, total: { $sum: "$vnp_Amount" } } },
     ]);
     const total = result[0]?.total || 0;
     res.status(200).json({ total });
@@ -243,15 +247,20 @@ exports.getMonthlyTotalPayment = async (req, res) => {
     const result = await Payment.aggregate([
       {
         $group: {
-          _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
-          total: { $sum: "$vnp_Amount" }
-        }
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          total: { $sum: "$vnp_Amount" },
+        },
       },
-      { $sort: { "_id.year": 1, "_id.month": 1 } }
+      { $sort: { "_id.year": 1, "_id.month": 1 } },
     ]);
     res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ message: "Error calculating monthly total payment" });
+    res
+      .status(500)
+      .json({ message: "Error calculating monthly total payment" });
   }
 };
 

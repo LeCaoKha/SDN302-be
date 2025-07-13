@@ -39,11 +39,14 @@ router.put(
   requireRole("admin"),
   parentController.updateParent
 );
-router.delete(
+router.patch(
   "/:id",
   protect,
-  requireRole("admin"),
+  requireRole(["admin", "staff"]),
   parentController.deleteParent
 );
+
+router.patch("/:id/restore", protect, requireRole(["admin", "staff"]), parentController.restoreParent);
+router.get("/me/children", protect, requireRole("parent"), parentController.getMyChildren);
 
 module.exports = router;

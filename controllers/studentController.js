@@ -17,8 +17,8 @@ exports.createStudent = async (req, res) => {
         message: "Bạn chỉ có thể tạo học sinh cho chính mình",
       });
     }
-
-    const student = await Student.create(req.body);
+    const { fullName, birthdate, gender, image, parentId, classId } = req.body;
+    const student = await Student.create({ fullName, birthdate, gender, image, parentId, classId });
     res.status(201).json(student);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -41,12 +41,15 @@ exports.getStudentById = async (req, res) => {
 
 // Update student
 exports.updateStudent = async (req, res) => {
-  const student = await Student.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-  });
+  const { fullName, birthdate, gender, image, parentId, classId } = req.body;
+  const student = await Student.findByIdAndUpdate(
+    req.params.id,
+    { fullName, birthdate, gender, image, parentId, classId },
+    { new: true }
+  );
   if (!student) return res.status(404).json({ message: "Student not found" });
   res.json(student);
-};``
+};
 
 // Delete student
 exports.deleteStudent = async (req, res) => {

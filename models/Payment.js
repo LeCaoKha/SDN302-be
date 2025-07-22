@@ -6,7 +6,7 @@ const paymentSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  payFor: String,
+  type: String,
   applicationId: String,
   vnp_TxnRef: String,
   vnp_Amount: Number,

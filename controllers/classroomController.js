@@ -6,6 +6,11 @@ const User = require("../models/User");
 exports.createClassroom = async (req, res) => {
   try {
     const { name, capacity } = req.body;
+    // Kiểm tra tên lớp đã tồn tại chưa
+    const existingClassroom = await Classroom.findOne({ name });
+    if (existingClassroom) {
+      return res.status(400).json({ error: "Classroom name already exists" });
+    }
     const classroom = new Classroom({
       name,
       capacity,
@@ -65,9 +70,14 @@ exports.updateClassroom = async (req, res) => {
 // Delete a classroom by ID
 exports.deleteClassroom = async (req, res) => {
   try {
-    const classroom = await Classroom.findByIdAndDelete(req.params.id);
+    const classroom = await Classroom.findById(req.params.id);
     if (!classroom)
       return res.status(404).json({ error: "Classroom not found" });
+    // Kiểm tra nếu còn học sinh hoặc giáo viên thì không cho xóa
+    if ((classroom.students && classroom.students.length > 0) || (classroom.teachers && classroom.teachers.length > 0)) {
+      return res.status(400).json({ error: "Cannot delete classroom with students or teachers" });
+    }
+    await Classroom.findByIdAndDelete(req.params.id);
     res.json({ message: "Classroom deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });

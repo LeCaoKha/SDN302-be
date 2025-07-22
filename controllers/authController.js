@@ -9,20 +9,21 @@ const generateToken = (user) => {
 
 exports.register = async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role, phone } = req.body;
 
     if (await User.findOne({ email })) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const user = await User.create({ username, email, password, role });
+    const user = await User.create({ username, email, password, role, phone });
 
     res.status(201).json({
       _id: user._id,
-      username: user.name,
+      username: user.username,
       password: user.password,
       email: user.email,
       role: user.role,
+      phone: user.phone,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -44,6 +45,7 @@ exports.login = async (req, res) => {
       email: user.email,
       role: user.role,
       status: user.status,
+      phone: user.phone,
       token: generateToken(user),
     });
   } catch (err) {

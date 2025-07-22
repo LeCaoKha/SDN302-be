@@ -1,8 +1,16 @@
 const express = require("express");
-const { getPaymentUrl, getPaymentByUserId } = require("../controllers/paymentController");
-const { refundPayment } = require("../controllers/paymentController");
-const { vnpayReturn } = require("../controllers/paymentController");
-const { getTotalPayment, getMonthlyTotalPayment } = require("../controllers/paymentController");
+const { 
+  getPaymentUrl, 
+  getPaymentByUserId, 
+  refundPayment, 
+  vnpayReturn, 
+  getTotalPayment, 
+  getMonthlyTotalPayment,
+  getTotalRefund,
+  getRefunds,
+  getAllPayment,
+  getPaymentById
+} = require("../controllers/paymentController");
 
 const { protect, requireRole } = require("../middleware/authMiddleware");
 
@@ -18,5 +26,9 @@ router.post("/refund", refundPayment);
 router.get("/vnpay/return/:applicationId", vnpayReturn);
 router.get("/total", protect, requireRole(["admin"]), getTotalPayment);
 router.get("/monthly-total", protect, requireRole(["admin"]), getMonthlyTotalPayment);
+router.get("/total-refund", protect, requireRole(["admin"]), getTotalRefund);
+router.get("/refunds", protect, requireRole(["admin"]), getRefunds);
+router.get("/all", protect, requireRole(["admin"]), getAllPayment);
+router.get("/:paymentId", protect, requireRole(["admin"]), getPaymentById);
 
 module.exports = router;

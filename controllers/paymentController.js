@@ -51,6 +51,7 @@ exports.getPaymentUrl = async (req, res) => {
   }
 };
 
+// refund tien 
 exports.refundPayment = async (req, res) => {
   try {
     const { applicationId, reason } = req.body;
@@ -138,9 +139,33 @@ exports.refundPayment = async (req, res) => {
       }
     );
 
-    // Nếu refund thành công, xóa payment khỏi DB
+    // Nếu refund thành công, lưu thông tin refund vào DB với type "refund"
     if (response.data && response.data.vnp_ResponseCode === '00') {
-      await Payment.deleteOne({ applicationId });
+      // Tạo payment record mới cho refund
+      const refundPayment = new Payment({
+        madeBy: payment.madeBy, // Giữ nguyên người thanh toán ban đầu
+        type: "refund", // Đánh dấu đây là refund
+        applicationId: applicationId,
+        vnp_TxnRef: payment.vnp_TxnRef, // Giữ nguyên TxnRef ban đầu
+        vnp_Amount: -payment.vnp_Amount, // Số tiền âm để thể hiện refund
+        vnp_OrderInfo: reason || "Hoàn tiền giao dịch",
+        vnp_TransactionNo: response.data.vnp_TransactionNo || payment.vnp_TransactionNo,
+        vnp_BankCode: payment.vnp_BankCode,
+        vnp_CardType: payment.vnp_CardType,
+        vnp_PayDate: createDate, // Ngày thực hiện refund
+        vnp_ResponseCode: response.data.vnp_ResponseCode,
+        vnp_TransactionStatus: response.data.vnp_TransactionStatus || "00",
+        vnp_SecureHash: response.data.vnp_SecureHash,
+      });
+      
+      await refundPayment.save();
+      
+      // Cập nhật trạng thái application về payment_pending nếu cần
+      await Application.findByIdAndUpdate(
+        applicationId,
+        { status: "payment_pending" },
+        { new: true }
+      );
     }
 
     res.status(200).json(response.data);
@@ -187,7 +212,7 @@ exports.vnpayReturn = async (req, res) => {
     if (computedHash === secureHash && queryParams.vnp_ResponseCode === "00") {
       const newPayment = new Payment({
         madeBy: userId,
-        payFor: "application",
+        type: "payment", // Đánh dấu đây là payment thông thường
         applicationId: applicationId,
         vnp_TxnRef: queryParams.vnp_TxnRef,
         vnp_Amount: Number(queryParams.vnp_Amount) / 100,
@@ -228,7 +253,7 @@ exports.vnpayReturn = async (req, res) => {
   }
 };
 
-// Lấy tổng số tiền đã thanh toán
+// Lấy tổng số tiền đã thanh toán (bao gồm cả refund)
 exports.getTotalPayment = async (req, res) => {
   try {
     const result = await Payment.aggregate([
@@ -241,7 +266,7 @@ exports.getTotalPayment = async (req, res) => {
   }
 };
 
-// Lấy tổng số tiền qua từng tháng
+// Lấy tổng số tiền qua từng tháng (bao gồm cả refund)
 exports.getMonthlyTotalPayment = async (req, res) => {
   try {
     const result = await Payment.aggregate([
@@ -271,5 +296,53 @@ exports.getPaymentByUserId = async (req, res) => {
     res.status(200).json(payments);
   } catch (error) {
     res.status(500).json({ message: "Error get user payment" });
+  }
+};
+
+// Lấy tổng số tiền refund
+exports.getTotalRefund = async (req, res) => {
+  try {
+    const result = await Payment.aggregate([
+      { $match: { type: "refund" } },
+      { $group: { _id: null, total: { $sum: "$vnp_Amount" } } },
+    ]);
+    const total = result[0]?.total || 0;
+    res.status(200).json({ total: Math.abs(total) }); // Trả về số dương
+  } catch (error) {
+    res.status(500).json({ message: "Error calculating total refund" });
+  }
+};
+
+// Lấy danh sách refund
+exports.getRefunds = async (req, res) => {
+  try {
+    const refunds = await Payment.find({ type: "refund" }).populate("madeBy", "username email");
+    res.status(200).json(refunds);
+  } catch (error) {
+    res.status(500).json({ message: "Error getting refunds" });
+  }
+};
+
+// Lấy toàn bộ danh sách payment (bao gồm cả refund), sắp xếp mới nhất trước
+exports.getAllPayment = async (req, res) => {
+  try {
+    const payments = await Payment.find().sort({ createdAt: -1 }).populate('madeBy', 'username email');
+    res.status(200).json(payments);
+  } catch (error) {
+    res.status(500).json({ message: "Error getting all payments" });
+  }
+};
+
+// Lấy payment theo paymentId
+exports.getPaymentById = async (req, res) => {
+  try {
+    const { paymentId } = req.params;
+    const payment = await Payment.findById(paymentId).populate('madeBy', 'username email');
+    if (!payment) {
+      return res.status(404).json({ message: 'Payment not found' });
+    }
+    res.status(200).json(payment);
+  } catch (error) {
+    res.status(500).json({ message: 'Error getting payment by id' });
   }
 };

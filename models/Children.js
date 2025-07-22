@@ -1,22 +1,17 @@
-// models/Student.js
 const mongoose = require("mongoose");
 
-const studentSchema = new mongoose.Schema({
+const childrenSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   birthdate: { type: Date, required: true },
   gender: { type: String, enum: ["male", "female", "other"], required: true },
-  image: { type: String, required: false, default: '' },
-  parentId: {
+  address: { type: String, required: true },
+  parent: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
-  classId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Classroom",
-    required: false, // có thể null nếu chưa xếp lớp
-  },
+  image: { type: String, required: false, default: '' },
   createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Student", studentSchema);
+module.exports = mongoose.model("Children", childrenSchema); 

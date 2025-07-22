@@ -3,8 +3,8 @@ const Children = require('../models/Children');
 // Create a new child
 exports.createChild = async (req, res) => {
   try {
-    const { fullName, birthdate, gender, address, parent, image } = req.body;
-    const child = await Children.create({ fullName, birthdate, gender, address, parent, image });
+    const childData = (({ fullName, birthdate, gender, address, parent, image, birthCertificateImage }) => ({ fullName, birthdate, gender, address, parent, image, birthCertificateImage }))(req.body);
+    const child = await Children.create(childData);
     res.status(201).json(child);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -35,10 +35,10 @@ exports.getChildById = async (req, res) => {
 // Update a child by ID
 exports.updateChild = async (req, res) => {
   try {
-    const { fullName, birthdate, gender, address, parent, image } = req.body;
+    const updateData = (({ fullName, birthdate, gender, address, parent, image, birthCertificateImage }) => ({ fullName, birthdate, gender, address, parent, image, birthCertificateImage }))(req.body);
     const child = await Children.findByIdAndUpdate(
       req.params.id,
-      { fullName, birthdate, gender, address, parent, image },
+      updateData,
       { new: true, runValidators: true }
     );
     if (!child) return res.status(404).json({ error: 'Child not found' });

@@ -5,6 +5,7 @@ const childrenController = require('../controllers/childrenController');
 // CRUD
 router.post('/', childrenController.createChild);
 router.get('/', childrenController.getAllChildren);
+router.get('/parent/:parentId', childrenController.getChildrenByParentId);
 router.get('/:id', childrenController.getChildById);
 router.put('/:id', childrenController.updateChild);
 router.delete('/:id', childrenController.deleteChild);

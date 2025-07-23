@@ -58,3 +58,14 @@ exports.deleteChild = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 }; 
+
+// Get children by parentId
+exports.getChildrenByParentId = async (req, res) => {
+  try {
+    const { parentId } = req.params;
+    const children = await Children.find({ parent: parentId }).populate('parent', 'username email');
+    res.json(children);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

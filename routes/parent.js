@@ -30,7 +30,7 @@ router.get(
 router.get(
   "/:id",
   protect,
-  requireRole("admin"),
+  requireRole(["admin", "staff"]),
   parentController.getParentById
 );
 router.put(

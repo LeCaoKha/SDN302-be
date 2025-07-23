@@ -57,7 +57,7 @@ exports.deleteChild = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-};
+}; 
 
 // Get children by parentId
 exports.getChildrenByParentId = async (req, res) => {
@@ -68,4 +68,4 @@ exports.getChildrenByParentId = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-}; 
+};

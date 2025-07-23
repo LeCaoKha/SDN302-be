@@ -18,6 +18,10 @@ const studentSchema = new mongoose.Schema({
     ref: "Classroom",
     required: false, // có thể null nếu chưa xếp lớp
   },
+  grade: {
+    type: String,
+    required: true,
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

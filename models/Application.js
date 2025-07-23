@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const applicationSchema = new mongoose.Schema(
   {
+    childId:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Children",
+      required: false,
+    },
     studentName: {
       type: String,
       required: true,
@@ -13,6 +18,11 @@ const applicationSchema = new mongoose.Schema(
     gender: {
       type: String,
       enum: ["male", "female", "other"],
+      required: true,
+    },
+    grade: {
+      type: String, // nursery: lớp mầm, pre-k: lớp chồi, kindergarten: lớp lá
+      default: "nursery",
       required: true,
     },
     address: {

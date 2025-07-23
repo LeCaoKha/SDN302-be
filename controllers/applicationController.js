@@ -1,16 +1,19 @@
 const Application = require("../models/Application");
 const Student = require("../models/Student");
+const Children = require("../models/Children");
 
 // POST /api/applications (parent only)
 exports.submitApplication = async (req, res) => {
   try {
-    const { studentName, birthdate, gender, address } = req.body;
+    const { id, studentName, birthdate, gender, address, grade } = req.body; 
 
     const application = await Application.create({
       studentName,
       birthdate,
       gender,
       address,
+      grade,
+      childId: id, 
       createdBy: req.user._id,
     });
 
@@ -102,25 +105,40 @@ exports.enrollFromApplication = async (req, res) => {
     if (app.status !== "approved")
       return res.status(400).json({ message: "Application not approved yet" });
 
-    const existing = await Student.findOne({
-      fullName: app.studentName,
-      birthdate: app.birthdate,
-      gender: app.gender,
-      address: app.address,
-      parentId: app.createdBy,
-    });
+    // Nếu có childId, lấy thông tin từ đó
+    let studentData;
+    if (app.childId) {
+      const child = await Children.findById(app.childId);
+      if (!child) return res.status(404).json({ message: "Child not found" });
+      studentData = {
+        _id: child._id,
+        fullName: child.fullName,
+        birthdate: child.birthdate,
+        gender: child.gender,
+        address: child.address,
+        parentId: child.parent,
+        grade: app.grade,
+      };
+    } else {
+      // Nếu không có childId, lấy từ application như cũ
+      studentData = {
+        fullName: app.studentName,
+        birthdate: app.birthdate,
+        gender: app.gender,
+        address: app.address,
+        parentId: app.createdBy,
+        grade: app.grade,
+      };
+    }
+
+    // Kiểm tra đã tồn tại student chưa
+    const existing = await Student.findOne(studentData);
 
     if (existing) {
       return res.status(409).json({ message: "Student already enrolled" });
     }
 
-    const student = await Student.create({
-      fullName: app.studentName,
-      birthdate: app.birthdate,
-      gender: app.gender,
-      address: app.address,
-      parentId: app.createdBy,
-    });
+    const student = await Student.create(studentData);
 
     res.status(201).json({ message: "Student enrolled successfully", student });
   } catch (error) {
@@ -170,15 +188,6 @@ exports.updateApplicationForParent = async (req, res) => {
           _id: id,
           createdBy: req.user._id,
           status: { $in: ["payment_pending", "payment_completed"] },
-
-          /*SQL	MongoDB
-IN	$in
-NOT IN	$nin
-LIKE	$regex
-AND	$and
-OR	$or
-IS NULL	$exists: false
-*/
         },
         { status: "cancelled" },
         { new: true }
@@ -191,8 +200,6 @@ IS NULL	$exists: false
       }
       return res.json(application);
     }
-
-
 
     // Chỉ cho phép parent update application của chính mình khi status là payment_pending hoặc payment_completed
     const application = await Application.findOneAndUpdate(

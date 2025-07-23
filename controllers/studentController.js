@@ -17,9 +17,9 @@ exports.createStudent = async (req, res) => {
         message: "Bạn chỉ có thể tạo học sinh cho chính mình",
       });
     }
-    let { _id, id, fullName, birthdate, gender, image, birthCertificateImage, parentId, classId } = req.body;
+    let { _id, id, fullName, birthdate, gender, image, birthCertificateImage, parentId, classId, grade } = req.body;
     // Ưu tiên _id, sau đó id, nếu không có thì để mặc định
-    let studentData = { fullName, birthdate, gender, image, birthCertificateImage, parentId, classId };
+    let studentData = { fullName, birthdate, gender, image, birthCertificateImage, parentId, classId, grade };
     if (_id) studentData._id = _id;
     else if (id) studentData._id = id;
     const student = await Student.create(studentData);
@@ -45,10 +45,10 @@ exports.getStudentById = async (req, res) => {
 
 // Update student
 exports.updateStudent = async (req, res) => {
-  let { fullName, birthdate, gender, image, birthCertificateImage, parentId, classId } = req.body;
+  let { fullName, birthdate, gender, image, birthCertificateImage, parentId, classId, grade } = req.body;
   const student = await Student.findByIdAndUpdate(
     req.params.id,
-    { fullName, birthdate, gender, image, birthCertificateImage, parentId, classId },
+    { fullName, birthdate, gender, image, birthCertificateImage, parentId, classId, grade },
     { new: true }
   );
   if (!student) return res.status(404).json({ message: "Student not found" });

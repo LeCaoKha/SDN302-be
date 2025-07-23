@@ -11,6 +11,7 @@ const childrenSchema = new mongoose.Schema({
     required: true,
   },
   image: { type: String, required: false, default: '' },
+  birthCertificateImage: { type: String, required: false, default: '' },
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -2,10 +2,12 @@
 const mongoose = require("mongoose");
 
 const studentSchema = new mongoose.Schema({
+  _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
   fullName: { type: String, required: true },
   birthdate: { type: Date, required: true },
   gender: { type: String, enum: ["male", "female", "other"], required: true },
   image: { type: String, required: false, default: '' },
+  birthCertificateImage: { type: String, required: false, default: '' },
   parentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

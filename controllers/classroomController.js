@@ -5,7 +5,7 @@ const User = require("../models/User");
 // Create a new classroom
 exports.createClassroom = async (req, res) => {
   try {
-    const { name, capacity } = req.body;
+    const { name, capacity, grade } = req.body;
     // Kiểm tra tên lớp đã tồn tại chưa
     const existingClassroom = await Classroom.findOne({ name });
     if (existingClassroom) {
@@ -14,7 +14,8 @@ exports.createClassroom = async (req, res) => {
     const classroom = new Classroom({
       name,
       capacity,
-      teacher: null,
+      grade,
+      teachers: [],
       students: [],
     });
     await classroom.save();
@@ -53,10 +54,10 @@ exports.getClassroomById = async (req, res) => {
 // Update a classroom by ID
 exports.updateClassroom = async (req, res) => {
   try {
-    const { name, capacity, teacher, students } = req.body;
+    const { name, capacity, teachers, students, grade } = req.body;
     const classroom = await Classroom.findByIdAndUpdate(
       req.params.id,
-      { name, capacity, teacher, students },
+      { name, capacity, teachers, students, grade },
       { new: true, runValidators: true }
     );
     if (!classroom)

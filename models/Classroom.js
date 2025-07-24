@@ -24,6 +24,10 @@ const classroomSchema = new mongoose.Schema(
         ref: "Student",
       },
     ],
+    grade: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );

@@ -29,6 +29,14 @@ const applicationSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    image: {
+      type: String,
+      required: false,
+    },
+    birthCertificateImage: {
+      type: String,
+      required: false,
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

@@ -5,7 +5,20 @@ const Children = require("../models/Children");
 // POST /api/applications (parent only)
 exports.submitApplication = async (req, res) => {
   try {
-    const { id, studentName, birthdate, gender, address, grade } = req.body; 
+    const { id, studentName, birthdate, gender, address, grade, image, birthCertificateImage } = req.body; 
+
+    // Nếu childId đã tồn tại trong Student thì không cho tạo mới
+    if (id) {
+      const existingStudent = await Student.findById(id);
+      if (existingStudent) {
+        return res.status(400).json({ message: "This student has been enrolled for this year" });
+      }
+      // Nếu childId đã tồn tại trong application khác có status payment_completed hoặc payment_pending thì không cho tạo mới
+      const existingApp = await Application.findOne({ childId: id, status: { $in: ["payment_completed", "payment_pending"] } });
+      if (existingApp) {
+        return res.status(400).json({ message: "You have submmited application for this children" });
+      }
+    }
 
     const application = await Application.create({
       studentName,
@@ -13,6 +26,8 @@ exports.submitApplication = async (req, res) => {
       gender,
       address,
       grade,
+      image,
+      birthCertificateImage,
       childId: id, 
       createdBy: req.user._id,
     });
@@ -118,6 +133,9 @@ exports.enrollFromApplication = async (req, res) => {
         address: child.address,
         parentId: child.parent,
         grade: app.grade,
+        image: child.image,
+        birthCertificateImage: child.birthCertificateImage,
+        classId: null
       };
     } else {
       // Nếu không có childId, lấy từ application như cũ
@@ -128,6 +146,9 @@ exports.enrollFromApplication = async (req, res) => {
         address: app.address,
         parentId: app.createdBy,
         grade: app.grade,
+        image: app.image,
+        birthCertificateImage: app.birthCertificateImage,
+        classId: null
       };
     }
 
@@ -179,7 +200,22 @@ exports.updateApplicationForParent = async (req, res) => {
   try {
     const { id } = req.params;
     const updateFields = { ...req.body };
-
+    // Chỉ giữ lại các trường hợp lệ
+    const allowedFields = [
+      "studentName",
+      "birthdate",
+      "gender",
+      "address",
+      "grade",
+      "image",
+      "birthCertificateImage",
+      "status"
+    ];
+    Object.keys(updateFields).forEach((key) => {
+      if (!allowedFields.includes(key)) {
+        delete updateFields[key];
+      }
+    });
     // Nếu parent muốn cancel đơn
     if (updateFields.status === "cancelled") {
       // Chỉ cho phép cancel khi đơn đang ở trạng thái payment_pending hoặc payment_completed
@@ -200,7 +236,6 @@ exports.updateApplicationForParent = async (req, res) => {
       }
       return res.json(application);
     }
-
     // Chỉ cho phép parent update application của chính mình khi status là payment_pending hoặc payment_completed
     const application = await Application.findOneAndUpdate(
       {
@@ -211,13 +246,11 @@ exports.updateApplicationForParent = async (req, res) => {
       updateFields,
       { new: true }
     );
-
     if (!application) {
       return res
         .status(404)
         .json({ message: "Application not found or not authorized" });
     }
-
     res.json(application);
   } catch (error) {
     res.status(400).json({ message: error.message });
